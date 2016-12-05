@@ -49,6 +49,19 @@ namespace yamuh
             return action.Invoke(_connection);
         }
 
+        public void WithUnitOfWork(Action<DbContext, UnitOfWork> action)
+        {
+            using (var connection = new SqlConnection(_connectionString))
+            {
+                connection.Open();
+                using (var scope = CreateUnitOfWork())
+                {
+                    action.Invoke(this, scope);
+                }
+            }
+            
+        }
+
         public void Dispose()
         {
             _connection.Dispose();
