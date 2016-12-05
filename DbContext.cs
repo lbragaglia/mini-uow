@@ -5,47 +5,53 @@ using System.Data.SqlClient;
 
 namespace yamuh
 {
-    public class DbContext
+    public class DbContext : IDisposable
     {
-        private readonly string _connectionString;
+        private readonly SqlConnection _connection;
         private readonly IsolationLevel _level;
 
-        public DbContext(string connectionString, IsolationLevel level = IsolationLevel.ReadCommitted)
+        public DbContext(string connectionString) : this(connectionString, IsolationLevel.ReadCommitted)
         {
-            _connectionString = connectionString;
+        }
+
+        public DbContext(string connectionString, IsolationLevel level)
+        {
+            _connection = new SqlConnection(connectionString);
             _level = level;
         }
 
-        public T TransactionExecute<T>(Func<IDbConnection, IDbTransaction, T> action)
+        public UnitOfWork CreateUnitOfWork()
         {
-            return Execute(c =>
+            return CreateUnitOfWork(_level);
+        }
+
+        public UnitOfWork CreateUnitOfWork(IsolationLevel level)
+        {
+            return new UnitOfWork(_connection, level);
+        }
+
+        public void Open()
+        {
+            _connection.Open();
+        }
+
+        public void WithConnection(Action<IDbConnection> action)
+        {
+            WithConnection<object>(connection =>
             {
-                using (var tx = c.BeginTransaction(_level))
-                {
-                    T result = action.Invoke(c, tx);
-                    tx.Commit();
-                    return result;
-                }
+                action.Invoke(connection);
+                return null;
             });
         }
 
-        public void TransactionExecute(Action<IDbConnection, IDbTransaction> action)
+        public T WithConnection<T>(Func<IDbConnection, T> action)
         {
-            TransactionExecute<object>((c, tx) => { action.Invoke(c, tx); return null; });
+            return action.Invoke(_connection);
         }
 
-        public void Execute(Action<IDbConnection> action)
+        public void Dispose()
         {
-            Execute<object>(c => { action.Invoke(c); return null; });
-        }
-
-        public T Execute<T>(Func<IDbConnection, T> action)
-        {
-            using (var c = new SqlConnection(_connectionString))
-            {
-                c.Open();
-                return action.Invoke(c);
-            }
+            _connection.Dispose();
         }
     }
 }
