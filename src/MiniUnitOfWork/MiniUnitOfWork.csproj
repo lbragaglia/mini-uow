@@ -6,6 +6,7 @@
     <AssemblyName>mini-uow</AssemblyName>
     <PackageId>mini-uow</PackageId>
     <NetStandardImplicitPackageVersion>1.6.0</NetStandardImplicitPackageVersion>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
