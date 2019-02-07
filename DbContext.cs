@@ -3,7 +3,7 @@ using System.Data;
 using System.Data.SqlClient;
 
 
-namespace yamuh
+namespace miniuow
 {
     public class DbContext : IDisposable
     {
