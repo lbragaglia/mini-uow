@@ -3,10 +3,15 @@
   <PropertyGroup>
     <TargetFramework>netstandard1.6</TargetFramework>
     <DebugType>portable</DebugType>
-    <AssemblyName>mini-uow</AssemblyName>
-    <PackageId>mini-uow</PackageId>
+    <AssemblyName>MiniUnitOfWork</AssemblyName>
+    <PackageId>MiniUnitOfWork</PackageId>
     <NetStandardImplicitPackageVersion>1.6.0</NetStandardImplicitPackageVersion>
     <LangVersion>latest</LangVersion>
+    <Version>0.0.1</Version>
+    <Authors>lbragaglia</Authors>
+    <Title>Yet Another Minimalistic UoW Helper</Title>
+    <Description>Yet Another Minimalistic Unit Of Work Helper</Description>
+    <RepositoryUrl>https://github.com/lbragaglia/mini-uow</RepositoryUrl>
   </PropertyGroup>
 
   <ItemGroup>
