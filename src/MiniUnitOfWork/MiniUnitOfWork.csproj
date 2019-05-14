@@ -1,13 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.6</TargetFramework>
-    <DebugType>portable</DebugType>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>MiniUnitOfWork</AssemblyName>
     <PackageId>MiniUnitOfWork</PackageId>
-    <NetStandardImplicitPackageVersion>1.6.0</NetStandardImplicitPackageVersion>
     <LangVersion>latest</LangVersion>
-    <Version>0.0.1</Version>
+    <Version>0.0.2</Version>
     <Authors>lbragaglia</Authors>
     <Title>Yet Another Minimalistic UoW Helper</Title>
     <Description>Yet Another Minimalistic Unit Of Work Helper</Description>
@@ -15,7 +13,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Data.SqlClient" Version="4.1.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.6.0" />
   </ItemGroup>
 
 </Project>
