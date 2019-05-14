@@ -5,7 +5,7 @@ using MiniUnitOfWork.Spi;
 
 namespace MiniUnitOfWork
 {
-    public class DbUnitOfWorkFactory : IUnitOfWorkFactory<DbUnitOfWork>, IUnitOfWorkCloseable
+    public class DbUnitOfWorkFactory : IUnitOfWorkFactory<DbUnitOfWork>, IUnitOfWorkCloseable, IDisposable
     {
         private readonly ThreadLocal<DbUnitOfWork> _current = new ThreadLocal<DbUnitOfWork>();
         private readonly IDbConnection _connection;
@@ -15,6 +15,7 @@ namespace MiniUnitOfWork
             IsolationLevel defaultIsolationLevel = IsolationLevel.ReadCommitted)
         {
             _connection = connectionFactory.NewConnection();
+            _connection.Open();
             _defaultIsolationLevel = defaultIsolationLevel;
         }
 
@@ -30,5 +31,17 @@ namespace MiniUnitOfWork
         }
 
         public void Finish() => _current.Value = null;
+
+        public void Dispose()
+        {
+            try
+            {
+                _current?.Dispose();
+            }
+            finally
+            {
+                _connection?.Dispose();
+            }
+        }
     }
 }

@@ -14,7 +14,6 @@ namespace MiniUnitOfWork
         {
             _connection = connection;
             _session = session;
-            _connection.Open();
             _transaction = _connection.BeginTransaction(isolationLevel);
         }
 
@@ -29,11 +28,10 @@ namespace MiniUnitOfWork
             try
             {
                 _transaction.Dispose();
-                _session.Finish();
             }
             finally
             {
-                _connection.Close();
+                _session.Finish();
             }
         }
     }

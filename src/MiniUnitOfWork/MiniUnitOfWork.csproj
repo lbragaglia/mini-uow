@@ -5,7 +5,7 @@
     <AssemblyName>MiniUnitOfWork</AssemblyName>
     <PackageId>MiniUnitOfWork</PackageId>
     <LangVersion>latest</LangVersion>
-    <Version>0.0.2</Version>
+    <Version>0.0.3</Version>
     <Authors>lbragaglia</Authors>
     <Title>Yet Another Minimalistic UoW Helper</Title>
     <Description>Yet Another Minimalistic Unit Of Work Helper</Description>
