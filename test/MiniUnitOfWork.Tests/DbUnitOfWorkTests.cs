@@ -87,7 +87,6 @@ namespace MiniUnitOfWork.Tests
 
         private DbUnitOfWorkFactory GivenAUnitOfWorkFactory()
         {
-            ExpectOpeningAConnection();
             return new DbUnitOfWorkFactory(_connectionFactory.Object);
         }
 
@@ -100,6 +99,7 @@ namespace MiniUnitOfWork.Tests
         private DbUnitOfWork GivenAUnitOfWork(DbUnitOfWorkFactory uowFactory)
         {
             const IsolationLevel anIsolationLevel = IsolationLevel.RepeatableRead;
+            ExpectOpeningAConnection();
             ExpectUnitOfWorkCreation(anIsolationLevel);
             return uowFactory.StartNew(anIsolationLevel);
         }
@@ -118,6 +118,7 @@ namespace MiniUnitOfWork.Tests
         private void ExpectUnitOfWorkDisposal()
         {
             _transaction.Setup(t => t.Dispose());
+            _connection.Setup(c => c.Dispose());
         }
 
         private void DisposeUnitOfWorkFactory(IDisposable uowFactory)
@@ -128,7 +129,6 @@ namespace MiniUnitOfWork.Tests
 
         private void ExpectUnitOfWorkFactoryDisposal()
         {
-            _connection.Setup(c => c.Dispose());
         }
     }
 }
