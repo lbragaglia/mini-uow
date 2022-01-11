@@ -8,11 +8,14 @@ namespace MiniUnitOfWork.Tests
 {
     public class DbUnitOfWorkTests
     {
+        private static readonly Func<int> DummyFunc = () => 42;
+        private static readonly Action DummyAction = () => { };
+
         private readonly Mock<IDbConnectionFactory> _connectionFactory;
         private readonly Mock<IDbConnection> _connection;
         private readonly Mock<IDbTransaction> _transaction;
         private readonly MockRepository _mockRepository;
-
+        
         public DbUnitOfWorkTests()
         {
             _mockRepository = new MockRepository(MockBehavior.Strict);
@@ -54,6 +57,22 @@ namespace MiniUnitOfWork.Tests
         }
 
         [Fact]
+        public void DoFunctionInTransaction()
+        {
+            var factory = GivenAUnitOfWorkFactory();
+            var uow = GivenAUnitOfWork(factory);
+            VerifyFunctionCallbackInTransaction(uow);
+        }
+
+        [Fact]
+        public void DoActionInTransaction()
+        {
+            var factory = GivenAUnitOfWorkFactory();
+            var uow = GivenAUnitOfWork(factory);
+            VerifyActionCallbackInTransaction(uow);
+        }
+
+        [Fact]
         public void CommitUnitOfWork()
         {
             ExpectCommittingUnitOfWork();
@@ -62,8 +81,6 @@ namespace MiniUnitOfWork.Tests
             var factory = GivenAUnitOfWorkFactory();
             using (var uow = GivenAUnitOfWork(factory))
             {
-                DoCallbackInTransaction(uow);
-
                 uow.SaveChanges();
             }
 
@@ -71,7 +88,52 @@ namespace MiniUnitOfWork.Tests
             _mockRepository.VerifyAll();
         }
 
-        private void DoCallbackInTransaction(DbUnitOfWork uow)
+        [Fact]
+        public void RollbackUnitOfWork()
+        {
+            ExpectUnitOfWorkDisposal();
+
+            var factory = GivenAUnitOfWorkFactory();
+            using (var uow = GivenAUnitOfWork(factory))
+            {
+                VerifyFunctionCallbackInTransaction(uow);
+            }
+
+            DisposeUnitOfWorkFactory(factory);
+            _mockRepository.VerifyAll();
+        }
+
+        [Fact]
+        public void DoFunctionInUnitOfWork()
+        {
+            ExpectOpeningAConnection();
+            ExpectUnitOfWorkCreation();
+            ExpectCommittingUnitOfWork();
+            ExpectUnitOfWorkDisposal();
+
+            var factory = GivenAUnitOfWorkFactory();
+            factory.DoInUnitOfWork(DummyFunc);
+
+            DisposeUnitOfWorkFactory(factory);
+            _mockRepository.VerifyAll();
+        }
+
+        [Fact]
+        public void DoActionInUnitOfWork()
+        {
+            ExpectOpeningAConnection();
+            ExpectUnitOfWorkCreation();
+            ExpectCommittingUnitOfWork();
+            ExpectUnitOfWorkDisposal();
+
+            var factory = GivenAUnitOfWorkFactory();
+            factory.DoInUnitOfWork(DummyAction);
+
+            DisposeUnitOfWorkFactory(factory);
+            _mockRepository.VerifyAll();
+        }
+
+        private void VerifyFunctionCallbackInTransaction(DbUnitOfWork uow)
         {
             var expectedResult = new object();
             var actualResult = uow.DoInTransaction((conn, tx) =>
@@ -83,16 +145,24 @@ namespace MiniUnitOfWork.Tests
             Assert.Same(expectedResult, actualResult);
         }
 
+        private void VerifyActionCallbackInTransaction(DbUnitOfWork uow)
+        {
+            uow.DoInTransaction((conn, tx) =>
+            {
+                Assert.Same(_connection.Object, conn);
+                Assert.Same(_transaction.Object, tx);
+            });
+        }
+
         private void ExpectCommittingUnitOfWork() => _transaction.Setup(t => t.Commit());
 
-        private DbUnitOfWorkFactory GivenAUnitOfWorkFactory()
-        {
-            return new DbUnitOfWorkFactory(_connectionFactory.Object);
-        }
+        private DbUnitOfWorkFactory GivenAUnitOfWorkFactory() => new DbUnitOfWorkFactory(_connectionFactory.Object);
 
         private void ExpectOpeningAConnection()
         {
-            _connectionFactory.Setup(cf => cf.NewConnection()).Returns(_connection.Object);
+            _connectionFactory
+                .Setup(cf => cf.NewConnection())
+                .Returns(_connection.Object);
             _connection.Setup(c => c.Open());
         }
 
@@ -104,9 +174,11 @@ namespace MiniUnitOfWork.Tests
             return uowFactory.StartNew(anIsolationLevel);
         }
 
-        private void ExpectUnitOfWorkCreation(IsolationLevel isolationLevel)
+        private void ExpectUnitOfWorkCreation(IsolationLevel isolationLevel = IsolationLevel.ReadCommitted)
         {
-            _connection.Setup(c => c.BeginTransaction(isolationLevel)).Returns(_transaction.Object);
+            _connection
+                .Setup(c => c.BeginTransaction(isolationLevel))
+                .Returns(_transaction.Object);
         }
 
         private void DisposeUnitOfWork(IDisposable uow)

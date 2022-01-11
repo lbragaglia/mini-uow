@@ -29,11 +29,24 @@ namespace MiniUnitOfWork
             return _current.Value = new DbUnitOfWork(_connectionFactory.NewConnection(), isolationLevel, this);
         }
 
+        public T DoInUnitOfWork<T>(Func<T> func)
+        {
+            using (var unitOfWork = StartNew())
+            {
+                var result = func();
+                unitOfWork.SaveChanges();
+                return result;
+            }
+        }
+
+        public void DoInUnitOfWork(Action action) => DoInUnitOfWork<object>(() =>
+        {
+            action();
+            return null;
+        });
+
         public void Finish() => _current.Value = null;
 
-        public void Dispose()
-        {
-            _current?.Dispose();
-        }
+        public void Dispose() => _current?.Dispose();
     }
 }

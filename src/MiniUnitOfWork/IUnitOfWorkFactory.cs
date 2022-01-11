@@ -1,4 +1,5 @@
-﻿using System.Data;
+﻿using System;
+using System.Data;
 
 namespace MiniUnitOfWork
 {
@@ -7,5 +8,7 @@ namespace MiniUnitOfWork
         T GetCurrent();
         T StartNew();
         T StartNew(IsolationLevel isolationLevel);
+        TResult DoInUnitOfWork<TResult>(Func<TResult> func);
+        void DoInUnitOfWork(Action action);
     }
 }
